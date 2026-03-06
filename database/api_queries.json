@@ -1,0 +1,206 @@
+{
+  "api_queries": {
+    "description": "Exemples de requêtes SQL à utiliser dans l'API Express.js",
+    "endpoints": {
+      "GET /api/especes": {
+        "description": "Récupérer toutes les espèces avec pagination",
+        "query": "SELECT e.id_espece, e.nom_commun, e.nom_scientifique, e.habitat, e.statut_conservation, COUNT(i.id_image) as nombre_images FROM ESPÈCE e LEFT JOIN IMAGE i ON e.id_espece = i.id_espece GROUP BY e.id_espece ORDER BY e.nom_commun LIMIT ? OFFSET ?",
+        "params": ["limit", "offset"],
+        "returns": "Array of species with image count"
+      },
+      "GET /api/especes/:id": {
+        "description": "Récupérer les détails complets d'une espèce",
+        "query": "SELECT e.id_espece, e.nom_commun, e.nom_scientifique, e.description, e.hauteur_min, e.hauteur_max, e.poids_min, e.poids_max, e.envergure, e.habitat, e.statut_conservation, t.ordre, t.famille, t.genre FROM ESPÈCE e JOIN TAXONOMIE t ON e.id_taxonomie = t.id_taxonomie WHERE e.id_espece = ?",
+        "params": ["id_espece"],
+        "returns": "Single species object with taxonomy"
+      },
+      "GET /api/especes/:id/images": {
+        "description": "Récupérer toutes les images d'une espèce",
+        "query": "SELECT i.id_image, i.url_image, i.description_image, i.date_prise, i.localisation, i.type_image, a.nom, a.prenom, a.email FROM IMAGE i JOIN ESPÈCE e ON i.id_espece = e.id_espece JOIN AUTEUR a ON i.id_auteur = a.id_auteur WHERE e.id_espece = ? ORDER BY i.date_prise DESC",
+        "params": ["id_espece"],
+        "returns": "Array of images with author details"
+      },
+      "GET /api/especes/:id/distribution": {
+        "description": "Récupérer la distribution géographique d'une espèce",
+        "query": "SELECT p.id_pays, p.nom_pays, p.continent, p.code_iso, d.statut_presence, d.date_start, d.date_end FROM DISTRIBUTION d JOIN PAYS p ON d.id_pays = p.id_pays WHERE d.id_espece = ? ORDER BY p.continent, p.nom_pays",
+        "params": ["id_espece"],
+        "returns": "Array of geographical distribution"
+      },
+      "GET /api/especes/recherche?q=:terme": {
+        "description": "Rechercher une espèce par nom",
+        "query": "SELECT id_espece, nom_commun, nom_scientifique FROM ESPÈCE WHERE nom_commun LIKE ? OR nom_scientifique LIKE ? ORDER BY nom_commun",
+        "params": ["%terme%", "%terme%"],
+        "returns": "Array of matching species"
+      },
+      "GET /api/especes/filtre?statut=:statut&habitat=:habitat&continent=:continent": {
+        "description": "Filtrer les espèces par critères",
+        "query": "SELECT DISTINCT e.id_espece, e.nom_commun, e.habitat, e.statut_conservation FROM ESPÈCE e JOIN DISTRIBUTION d ON e.id_espece = d.id_espece JOIN PAYS p ON d.id_pays = p.id_pays WHERE (e.statut_conservation = ? OR ? = '') AND (e.habitat = ? OR ? = '') AND (p.continent = ? OR ? = '') GROUP BY e.id_espece ORDER BY e.nom_commun",
+        "params": ["statut", "statut", "habitat", "habitat", "continent", "continent"],
+        "returns": "Array of filtered species"
+      },
+      "GET /api/especes/tri?champ=:champ&ordre=:ordre": {
+        "description": "Trier les espèces par critère",
+        "query": "SELECT id_espece, nom_commun, hauteur_max, poids_max FROM ESPÈCE ORDER BY [champ] [ordre]",
+        "note": "Use dynamic ordering carefully - validate 'champ' and 'ordre' inputs",
+        "example": "SELECT id_espece, nom_commun, hauteur_max, poids_max FROM ESPÈCE ORDER BY hauteur_max DESC",
+        "returns": "Array of sorted species"
+      },
+      "POST /api/especes": {
+        "description": "Ajouter une nouvelle espèce",
+        "query": "INSERT INTO ESPÈCE (nom_commun, nom_scientifique, description, hauteur_min, hauteur_max, poids_min, poids_max, envergure, habitat, statut_conservation, id_taxonomie) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "params": ["nom_commun", "nom_scientifique", "description", "hauteur_min", "hauteur_max", "poids_min", "poids_max", "envergure", "habitat", "statut_conservation", "id_taxonomie"],
+        "returns": "New species ID and confirmation"
+      },
+      "POST /api/especes/:id/images": {
+        "description": "Ajouter une image à une espèce",
+        "query": "INSERT INTO IMAGE (id_espece, id_auteur, url_image, description_image, date_prise, localisation, type_image) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "params": ["id_espece", "id_auteur", "url_image", "description_image", "date_prise", "localisation", "type_image"],
+        "returns": "New image ID and confirmation"
+      },
+      "PUT /api/especes/:id": {
+        "description": "Modifier une espèce",
+        "query": "UPDATE ESPÈCE SET nom_commun=?, description=?, hauteur_min=?, hauteur_max=?, poids_min=?, poids_max=?, envergure=?, habitat=?, statut_conservation=?, date_modification=CURRENT_TIMESTAMP WHERE id_espece=?",
+        "params": ["nom_commun", "description", "hauteur_min", "hauteur_max", "poids_min", "poids_max", "envergure", "habitat", "statut_conservation", "id_espece"],
+        "returns": "Confirmation of update"
+      },
+      "DELETE /api/especes/:id": {
+        "description": "Supprimer une espèce (cascade delete des images)",
+        "query": "DELETE FROM ESPÈCE WHERE id_espece=?",
+        "params": ["id_espece"],
+        "note": "Images sont supprimées automatiquement via CASCADE DELETE",
+        "returns": "Confirmation of deletion"
+      },
+      "GET /api/auteurs": {
+        "description": "Récupérer tous les auteurs",
+        "query": "SELECT a.id_auteur, a.nom, a.prenom, a.email, COUNT(i.id_image) as nombre_photos FROM AUTEUR a LEFT JOIN IMAGE i ON a.id_auteur = i.id_auteur GROUP BY a.id_auteur ORDER BY nombre_photos DESC",
+        "returns": "Array of authors with photo counts"
+      },
+      "GET /api/pays": {
+        "description": "Récupérer tous les pays",
+        "query": "SELECT id_pays, code_iso, nom_pays, continent, population_initiale FROM PAYS ORDER BY continent, nom_pays",
+        "returns": "Array of countries"
+      },
+      "GET /api/statistiques": {
+        "description": "Récupérer les statistiques globales",
+        "query": "SELECT (SELECT COUNT(*) FROM ESPÈCE) as total_especes, (SELECT COUNT(*) FROM IMAGE) as total_images, (SELECT COUNT(*) FROM AUTEUR) as total_auteurs, (SELECT COUNT(*) FROM PAYS) as total_pays, (SELECT COUNT(DISTINCT ordre) FROM TAXONOMIE) as total_ordres",
+        "returns": "Global statistics object"
+      }
+    },
+    "validation_rules": {
+      "nom_commun": {
+        "type": "string",
+        "min_length": 2,
+        "max_length": 100,
+        "required": true
+      },
+      "nom_scientifique": {
+        "type": "string",
+        "min_length": 2,
+        "max_length": 100,
+        "required": true,
+        "unique": true
+      },
+      "hauteur_min": {
+        "type": "float",
+        "min": 0.1,
+        "required": false
+      },
+      "hauteur_max": {
+        "type": "float",
+        "min": 0.1,
+        "required": false,
+        "note": "Doit être > hauteur_min"
+      },
+      "poids_min": {
+        "type": "float",
+        "min": 0.1,
+        "required": false
+      },
+      "poids_max": {
+        "type": "float",
+        "min": 0.1,
+        "required": false,
+        "note": "Doit être > poids_min"
+      },
+      "statut_conservation": {
+        "type": "enum",
+        "allowed_values": ["LC", "NT", "VU", "EN", "CR", "EW", "EX"],
+        "default": "LC"
+      },
+      "habitat": {
+        "type": "string",
+        "max_length": 200,
+        "examples": ["Forêt tropicale", "Savane", "Montagne", "Zone urbaine"]
+      },
+      "continent": {
+        "type": "enum",
+        "allowed_values": ["Afrique", "Antarctique", "Asie", "Europe", "Amérique du Nord", "Amérique Centrale", "Amérique du Sud", "Océanie"]
+      }
+    },
+    "error_responses": {
+      "400": "Bad Request - Données invalides",
+      "404": "Not Found - Ressource inexistante",
+      "409": "Conflict - Unicité violée (ex: nom scientifique en double)",
+      "500": "Internal Server Error"
+    },
+    "examples": {
+      "get_all_species": {
+        "endpoint": "GET /api/especes?limit=10&offset=0",
+        "response": {
+          "success": true,
+          "data": [
+            {
+              "id_espece": 1,
+              "nom_commun": "Corbeau freux",
+              "nom_scientifique": "Corvus frugilegus",
+              "habitat": "Zones urbaines et rurales",
+              "statut_conservation": "LC",
+              "nombre_images": 2
+            }
+          ],
+          "total": 11
+        }
+      },
+      "get_species_details": {
+        "endpoint": "GET /api/especes/3",
+        "response": {
+          "success": true,
+          "data": {
+            "id_espece": 3,
+            "nom_commun": "Pie bavarde",
+            "nom_scientifique": "Pica pica",
+            "description": "Oiseau bicolore blanc et noir",
+            "hauteur_min": 40,
+            "hauteur_max": 51,
+            "poids_min": 140,
+            "poids_max": 250,
+            "envergure": 52,
+            "habitat": "Zones urbaines et rurales",
+            "statut_conservation": "LC",
+            "ordre": "Passeriformes",
+            "famille": "Corvidae",
+            "genre": "Pica"
+          }
+        }
+      },
+      "search_species": {
+        "endpoint": "GET /api/especes/recherche?q=corbeau",
+        "response": {
+          "success": true,
+          "data": [
+            {
+              "id_espece": 1,
+              "nom_commun": "Corbeau freux",
+              "nom_scientifique": "Corvus frugilegus"
+            },
+            {
+              "id_espece": 2,
+              "nom_commun": "Corneille noire",
+              "nom_scientifique": "Corvus corone"
+            }
+          ]
+        }
+      }
+    }
+  }
+}

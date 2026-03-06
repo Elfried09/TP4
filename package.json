@@ -1,0 +1,28 @@
+{
+  "name": "bird-app",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Encyclopédie des oiseaux - Application React avec API Flask",
+  "author": "TP4 Student",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .js,.jsx"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.20.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.0",
+    "vite": "^5.0.0",
+    "eslint": "^8.55.0",
+    "eslint-plugin-react": "^7.33.0"
+  }
+}

@@ -1,0 +1,9 @@
+# Aucune dépendance externe requise
+# L'API utilise seulement la stdlib Python:
+# - http.server (HTTPServer, BaseHTTPRequestHandler)
+# - json
+# - sqlite3
+# - urllib.parse
+#
+# Pour lancer l'API:
+#   python api_http.py
