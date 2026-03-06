@@ -38,6 +38,8 @@ CREATE TABLE ESPÈCE (
     poids_min FLOAT CHECK(poids_min > 0),
     poids_max FLOAT CHECK(poids_max > 0),
     envergure FLOAT CHECK(envergure > 0),
+    longevite_ans INTEGER,
+    nombre_individus INTEGER,
     habitat VARCHAR(200),
     statut_conservation VARCHAR(50) DEFAULT 'LC'
         CHECK(statut_conservation IN ('LC', 'NT', 'VU', 'EN', 'CR', 'EW', 'EX')),
